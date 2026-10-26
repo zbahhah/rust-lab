@@ -15,7 +15,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: x86_64-apple-darwin, aarch64-apple-ios
+          targets: x86_64-apple-darwin, aarch64-apple-ios, aarch64-linux-android
 
       - name: Check formatting
         run: cargo fmt --check
@@ -36,6 +36,12 @@ jobs:
       - name: Build release (iOS aarch64)
         if: matrix.os == 'macos-latest'
         run: cargo build --release --target aarch64-apple-ios
+
+      - name: Build release (Android aarch64)
+        if: matrix.os == 'ubuntu-latest'
+        run: >
+          CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang"
+          cargo build --release --target aarch64-linux-android
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
@@ -58,3 +64,10 @@ jobs:
         with:
           name: rust-lab-ios-aarch64
           path: target/aarch64-apple-ios/release/rust-lab
+
+      - name: Upload binary (Android aarch64)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-lab-android-aarch64
+          path: target/aarch64-linux-android/release/rust-lab
