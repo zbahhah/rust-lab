@@ -14,6 +14,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin
 
       - name: Check formatting
         run: cargo fmt --check
@@ -27,6 +29,10 @@ jobs:
       - name: Build release
         run: cargo build --release
 
+      - name: Build release (macOS x86_64)
+        if: matrix.os == 'macos-latest'
+        run: cargo build --release --target x86_64-apple-darwin
+
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
@@ -34,3 +40,10 @@ jobs:
           path: |
             target/release/rust-lab
             target/release/rust-lab.exe
+
+      - name: Upload binary (macOS x86_64)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-lab-macos-x86_64
+          path: target/x86_64-apple-darwin/release/rust-lab
