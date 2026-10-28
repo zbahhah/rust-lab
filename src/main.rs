@@ -5,21 +5,23 @@ fn main() {
     popup(GREETING);
 }
 
-/// Native message box via Win32.
+/// Native message box via Windows PowerShell (ships with Windows); the text goes in through an environment variable.
 #[cfg(windows)]
 fn popup(text: &str) {
-    use windows::Win32::UI::WindowsAndMessaging::{MB_OK, MessageBoxW};
-    use windows::core::HSTRING;
+    use std::process::Command;
 
-    // SAFETY: `None` is a valid null window handle for a modal popup, and
-    // `HSTRING` gives MessageBoxW valid, null-terminated UTF-16 strings.
-    unsafe {
-        MessageBoxW(
-            None,
-            &HSTRING::from(text),
-            &HSTRING::from("rust-lab"),
-            MB_OK,
-        );
+    let shown = Command::new("powershell.exe")
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "Add-Type -AssemblyName PresentationFramework; [void][System.Windows.MessageBox]::Show($env:RUST_LAB_TEXT, 'rust-lab')",
+        ])
+        .env("RUST_LAB_TEXT", text)
+        .status()
+        .is_ok_and(|s| s.success());
+    if !shown {
+        eprintln!("(no desktop session, console only): {text}");
     }
 }
 
